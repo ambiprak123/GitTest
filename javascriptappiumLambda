@@ -1,0 +1,17 @@
+.github
+apps
+configs
+features
+helpers
+logs
+node_modules
+slack
+step-definitions
+testfile.ts
+.gitignore
+bable.config
+package
+package-lock
+tsconfig
+wdio-appium
+yarn.lock
