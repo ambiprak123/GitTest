@@ -1,0 +1,43 @@
+name: Shared - Run specs
+
+on:
+  workflow_call:
+    inputs:
+      device:
+        required: true
+        type: string
+
+jobs:
+  run-specs:
+    name: Build packages & run tests
+    runs-on: ubuntu-latest
+    env:
+      DEFAULT_DEVICE: zebra
+      DEFAULT_TYPE: regression
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ">=20.0.0"
+
+      - name: Install Yarn
+        if: always()
+        run: npm install --global yarn
+
+      - name: Install all packages
+        if: always()
+        run: yarn
+
+      - name: Run tests, on "${{ github.event.inputs.device }}" device
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          npx wdio configs/wdio.android.${{ github.event.inputs.device }}.conf.js
+
+      - name: Run regression tests on "LambdaTests"
+        if: ${{ github.event_name == 'schedule' }}
+        run: |
+          npx wdio configs/wdio.android.lambdatest.conf.js

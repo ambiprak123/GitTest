@@ -1,0 +1,47 @@
+name: Shared - Report results
+
+on:
+  workflow_call:
+    inputs:
+      tests-result:
+        required: true
+        type: string
+        description: "Test run status"
+      environment:
+        type: string
+        description: "Environment: dev / staging / localhost"
+        required: true
+    secrets:
+      APPIUM_SLACK_WEBHOOK:
+        required: true
+
+jobs:
+  run-tests:
+    name: Report results on Slack
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Checkout the repository
+        if: always()
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        if: always()
+        uses: actions/setup-node@v4
+        with:
+          node-version: ">=20.0.0"
+
+      - name: install dependency
+        if: always()
+        run: |
+          yarn add isomorphic-fetch
+
+      - name: Slack (${{ inputs.tests-result }}) notification
+        if: always()
+        run: |
+          export SCRIPT_PATH=${{ github.workspace }}/slack/${{ inputs.tests-result == 'success' && 'success_message.js' || 'failed_message.js'}}
+          export EVENT_NAME=${{ github.event_name }}
+          export ENVIRONMENT=${{ inputs.environment }}
+          export BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          export RUN_URL=${{ github.server_url }}/${{ github }}/actions/runs/${{ github }}
+          yarn node $SCRIPT_PATH "${{ secrets.APPIUM_SLACK_WEBHOOK }}" "$EVENT_NAME" "$BRANCH_NAME" "$RUN_URL" "$ENVIRONMENT"

@@ -1,0 +1,15 @@
+name: Weste Markdown API Automation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  runtests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: matt-ball/newman-action@master
+        with:
+          apiKey: ${{ secrets.postmanApiKey }}
+          collection: variables.json
+          environment:

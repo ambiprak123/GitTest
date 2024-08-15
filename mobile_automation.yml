@@ -1,0 +1,44 @@
+name: Weste Markdown Mobile Automation
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+    inputs:
+      device:
+        type: choice
+        description: "Device: Zebra TC52 / Datalogic Memor10 / LambdaTest"
+        required: true
+        options:
+          - zebra
+          - datalogic
+          - lambdatest
+          - emulator
+        default: "lambdatest"
+      test-type:
+        type: choice
+        description: "Test type @smoke / @regression"
+        required: true
+        options:
+          - regression
+          - smoke
+        default: "regression"
+
+jobs:
+  run-specs:
+    name: Run
+    if: always()
+    uses: "./.github/workflows/shared-appium-run-tests.yml"
+    with:
+      device: ${{ inputs.device }}
+
+  report:
+    name: Report
+    needs: [run-specs]
+    if: always()
+    uses: "./.github/workflows/shared-appium-report.yml"
+    secrets:
+      APPIUM_SLACK_WEBHOOK: ${{ secrets.APPIUM_SLACK_WEBHOOK }}
+    with:
+      tests-result: ${{ needs.run-specs.result }}
+      environment: ${{ inputs.device }}
